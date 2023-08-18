@@ -13,10 +13,7 @@ async function create(data: CreateUserParams) {
         ...data,
         password: hashedPassword
     })
-
-    return {
-        user: exclude(user, 'password')
-    }
+    return exclude(user, 'password')
 }
 
 async function validateUniqueEmailOrFail(email: string) {
