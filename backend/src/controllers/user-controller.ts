@@ -3,7 +3,7 @@ import { userService } from '@/services'
 import { NextFunction, Request, Response } from 'express'
 import httpStatus from 'http-status'
 
-export async function postUser(
+export async function createUser(
     req: Request,
     res: Response,
     next: NextFunction
