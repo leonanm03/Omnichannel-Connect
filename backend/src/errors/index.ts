@@ -1,1 +1,1 @@
-// errors
+export * from './conflict-error'
