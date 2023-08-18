@@ -23,6 +23,7 @@ export function handleApplicationErrors(
             })
 
         default:
+            console.error(err)
             return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
                 error: 'InternalServerError',
                 message: 'Internal Server Error'
