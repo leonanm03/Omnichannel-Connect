@@ -9,7 +9,21 @@ export function handleApplicationErrors(
     _next: NextFunction
 ) {
     switch (err.name) {
+        case 'InvalidDataError':
+            return res.status(httpStatus.BAD_REQUEST).send({
+                error: err.name,
+                message: err.message,
+                details: (err as any).details
+            })
+
+        case 'ConflictError':
+            return res.status(httpStatus.CONFLICT).send({
+                error: err.name,
+                message: err.message
+            })
+
         default:
+            console.error(err)
             return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
                 error: 'InternalServerError',
                 message: 'Internal Server Error'
