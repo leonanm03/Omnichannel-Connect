@@ -11,8 +11,8 @@ export async function createUser(
     const data = req.body as CreateUserParams
 
     try {
-        const { id, name, email } = await userService.create(data)
-        return res.status(httpStatus.CREATED).send({ id, name, email })
+        const user = await userService.create(data)
+        return res.status(httpStatus.CREATED).send(user)
     } catch (error) {
         next(error)
     }
