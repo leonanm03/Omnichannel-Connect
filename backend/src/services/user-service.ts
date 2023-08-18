@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { conflictError } from '@/errors'
 import { userRepository } from '@/repositories'
 
-async function createUser(data: CreateUserParams): Promise<User> {
+async function create(data: CreateUserParams): Promise<User> {
     const { email, password } = data
     await validateUniqueEmailOrFail(email)
 
@@ -24,5 +24,5 @@ async function validateUniqueEmailOrFail(email: string) {
 export type CreateUserParams = Prisma.UserCreateInput
 
 export const userService = {
-    createUser
+    create
 }
