@@ -1,4 +1,5 @@
 'use client'
+import instance from '@/services/api'
 import { useFormik } from 'formik'
 import { useState } from 'react'
 
@@ -40,7 +41,12 @@ export function SignUpForm() {
                 phone: values.phone
             }
 
-            alert(JSON.stringify(body))
+            try {
+                const user = await instance.post('/user/create', body)
+                console.log(user)
+            } catch (error) {
+                console.error(error)
+            }
         }
     })
 
