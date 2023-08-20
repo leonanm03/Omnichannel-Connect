@@ -1,7 +1,9 @@
 'use client'
 import { useFormik } from 'formik'
+import { useState } from 'react'
 
 export function SignUpForm() {
+    const [validCep, setValidCep] = useState(false)
     const formik = useFormik({
         initialValues: {
             name: '',
@@ -14,44 +16,54 @@ export function SignUpForm() {
             neighborhood: '',
             street: '',
             number: '',
-            complement: ''
+            complement: '',
+            phone: ''
         },
-        onSubmit: (values) => {
-            alert(JSON.stringify(values, null, 2))
+        onSubmit: async (values) => {
+            if (!validCep) {
+                const address = await findCepOrFail(values.cep)
+                if (address.erro) return
+                completeAddress(address)
+                setValidCep(true)
+            }
+
+            if (values.password !== values.confirmPassword) {
+                alert('Senhas não conferem')
+                return
+            }
+
+            const body = {
+                name: values.name,
+                email: values.email,
+                password: values.password,
+                address: `${values.street}, ${values.number} - ${values.neighborhood}, ${values.city} - ${values.uf} - ${values.cep}`,
+                phone: values.phone
+            }
+
+            alert(JSON.stringify(body))
         }
     })
 
-    function onBlurCep(e: React.FocusEvent<HTMLInputElement>) {
+    async function onBlurCep(e: React.FocusEvent<HTMLInputElement>) {
         const { value } = e.target
+        setValidCep(false)
 
-        const cep = value?.replace(/[^0-9]/g, '')
-
-        if (cep?.length !== 8) {
+        const address = await findCepOrFail(value)
+        if (address.erro) {
             return
+        } else {
+            completeAddress(address)
+            setValidCep(true)
         }
+    }
 
-        fetch(`https://viacep.com.br/ws/${cep}/json/`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.erro) {
-                    alert(`CEP ${formik.values.cep} inválido`)
-                    formik.setValues({
-                        ...formik.values,
-                        cep: ''
-                    })
-                    return
-                }
-                formik.setValues({
-                    ...formik.values,
-                    uf: data.uf,
-                    city: data.localidade,
-                    neighborhood: data.bairro,
-                    street: data.logradouro
-                })
-            })
-            .catch((error) => {
-                console.error(error)
-            })
+    function completeAddress(data: Address) {
+        formik.setFieldValue('cep', data.cep)
+        formik.setFieldValue('uf', data.uf)
+        formik.setFieldValue('city', data.localidade)
+        formik.setFieldValue('neighborhood', data.bairro)
+        formik.setFieldValue('street', data.logradouro)
+        formik.setFieldValue('complement', data.complemento)
     }
 
     return (
@@ -296,6 +308,25 @@ export function SignUpForm() {
                                 />
                             </div>
 
+                            <div className="col-span-6 sm:col-span-6">
+                                <label
+                                    htmlFor="phone"
+                                    className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                                >
+                                    Tefefone
+                                </label>
+
+                                <input
+                                    required
+                                    type="text"
+                                    id="phone"
+                                    name="phone"
+                                    className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.phone}
+                                />
+                            </div>
+
                             <div className="col-span-6">
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
                                     Criando uma conta você concorda com os{' '}
@@ -341,4 +372,40 @@ export function SignUpForm() {
             </div>
         </section>
     )
+}
+
+async function findCepOrFail(value: string): Promise<Address> {
+    const cep = value?.replace(/[^0-9]/g, '')
+
+    if (cep?.length !== 8) {
+        return { erro: true } as Address
+    }
+
+    try {
+        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        const data = (await res.json()) as Address
+        if (data.erro) {
+            alert(`CEP ${value} inválido`)
+            return data
+        }
+
+        return data
+    } catch (error) {
+        console.error(error)
+        return { erro: true } as Address
+    }
+}
+
+type Address = {
+    cep?: string
+    logradouro?: string
+    complemento?: string
+    bairro?: string
+    localidade?: string
+    uf?: string
+    ibge?: string
+    gia?: string
+    ddd?: string
+    siafi?: string
+    erro?: boolean
 }
