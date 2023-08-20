@@ -1,0 +1,36 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    ports:
+      - 5433:5432
+    env_file:
+      - ./backend/.env
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+
+  node-api:
+    container_name: node-api
+    build: ./backend
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - backend/.env
+
+  next-app:
+    container_name: next-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3001:3000
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+
+volumes:
+  postgres-volume:
