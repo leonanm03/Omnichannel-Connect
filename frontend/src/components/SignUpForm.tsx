@@ -1,10 +1,12 @@
 'use client'
 import instance from '@/services/api'
 import { useFormik } from 'formik'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function SignUpForm() {
     const [validCep, setValidCep] = useState(false)
+    const router = useRouter()
     const formik = useFormik({
         initialValues: {
             name: '',
@@ -28,6 +30,11 @@ export function SignUpForm() {
                 setValidCep(true)
             }
 
+            if (values.password.length < 8) {
+                alert('Senha deve ter no mínimo 8 caracteres')
+                return
+            }
+
             if (values.password !== values.confirmPassword) {
                 alert('Senhas não conferem')
                 return
@@ -43,9 +50,21 @@ export function SignUpForm() {
 
             try {
                 const user = await instance.post('/user/create', body)
-                console.log(user)
-            } catch (error) {
-                console.error(error)
+                alert('Usuário criado com sucesso')
+                router.push('/')
+            } catch (error: any) {
+                switch (error.response.status) {
+                    case 409:
+                        alert('Email já cadastrado')
+                        break
+                    case 400:
+                        alert('Dados inválidos')
+                        break
+                    default:
+                        alert(
+                            'Erro ao criar usuário, tente novamente. Se o erro persistir, entre em contato com o suporte'
+                        )
+                }
             }
         }
     })
@@ -149,7 +168,7 @@ export function SignUpForm() {
                                     htmlFor="password"
                                     className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                                 >
-                                    Senha
+                                    Senha (mínimo 8 caracteres)
                                 </label>
 
                                 <input
