@@ -20,8 +20,42 @@ export function SignUpForm() {
             alert(JSON.stringify(values, null, 2))
         }
     })
+
+    function onBlurCep(e: React.FocusEvent<HTMLInputElement>) {
+        const { value } = e.target
+
+        const cep = value?.replace(/[^0-9]/g, '')
+
+        if (cep?.length !== 8) {
+            return
+        }
+
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.erro) {
+                    alert(`CEP ${formik.values.cep} inválido`)
+                    formik.setValues({
+                        ...formik.values,
+                        cep: ''
+                    })
+                    return
+                }
+                formik.setValues({
+                    ...formik.values,
+                    uf: data.uf,
+                    city: data.localidade,
+                    neighborhood: data.bairro,
+                    street: data.logradouro
+                })
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+    }
+
     return (
-        <section className="bg-white dark:bg-gray-900">
+        <section className="bg-white dark:bg-gray-900 h-full">
             <div className="lg:grid lg:min-h-screen lg:grid-cols-12">
                 <section className="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6">
                     <div className="hidden lg:relative lg:block lg:p-12">
@@ -146,6 +180,7 @@ export function SignUpForm() {
                                     className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                     onChange={formik.handleChange}
                                     value={formik.values.cep}
+                                    onBlur={onBlurCep}
                                 />
                             </div>
                             <div className="col-span-2 sm:col-span-1">
