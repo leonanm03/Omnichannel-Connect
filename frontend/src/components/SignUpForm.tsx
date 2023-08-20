@@ -45,7 +45,7 @@ export function SignUpForm() {
                 email: values.email,
                 password: values.password,
                 address: `${values.street}, ${values.number} - ${values.neighborhood}, ${values.city} - ${values.uf} - ${values.cep}`,
-                phone: values.phone
+                phone: values.phone.replace(/[^0-9]/g, '')
             }
 
             try {
